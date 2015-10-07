@@ -152,6 +152,7 @@ public class Beaconear {
                         else if (builderBeacon.isFar())
                             this.mPaymentBeaconCallback.whenFar(new PaymentBeacon(builderBeacon));
                     }
+                    break;
 
                 case BeaconType.INFO:
                     if (mInfoBeaconCallback != null) {
@@ -162,6 +163,7 @@ public class Beaconear {
                         else if (builderBeacon.isFar())
                             this.mInfoBeaconCallback.whenFar(new InfoBeacon(builderBeacon));
                     }
+                    break;
 
                 default:
                     BeaconCallback<BuilderBeacon> callback = this.mTypeCallbackMap.get(builderBeacon.getType());
@@ -173,6 +175,7 @@ public class Beaconear {
                         else if (builderBeacon.isFar())
                             callback.whenFar(builderBeacon);
                     }
+                    break;
 
             }
         }

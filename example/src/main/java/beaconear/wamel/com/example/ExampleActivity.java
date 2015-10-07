@@ -6,9 +6,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import beaconear.wamel.com.beaconearsdk.core.Beaconear;
 import beaconear.wamel.com.beaconearsdk.model.BeaconCallback;
 import beaconear.wamel.com.beaconearsdk.model.BuilderBeacon;
@@ -21,14 +18,14 @@ import model.MesaBeacon;
 import model.MyBeaconType;
 
 
-public class AsynchronousActivity extends ActionBarActivity {
+public class ExampleActivity extends ActionBarActivity {
 
     private Beaconear beaconear;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_asyncronous);
+        setContentView(R.layout.activity_example);
 
 
         beaconear = new Beaconear.Builder()
@@ -149,7 +146,7 @@ public class AsynchronousActivity extends ActionBarActivity {
     private void showToast(final String message) {
         runOnUiThread(new Runnable(){
             public void run() {
-                Toast.makeText(AsynchronousActivity.this, message, Toast.LENGTH_LONG).show();
+                Toast.makeText(ExampleActivity.this, message, Toast.LENGTH_LONG).show();
             }
         });
     }
