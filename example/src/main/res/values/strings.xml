@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Example</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_api_test">ApiTest</string>
+    <string name="title_activity_beaconear_manager_test">BeaconearManagerTest</string>
+    <string name="title_activity_beacon_manager">BeaconManagerActivity</string>
+    <string name="title_activity_asyncronous">AsyncronousActivity</string>
+
+</resources>

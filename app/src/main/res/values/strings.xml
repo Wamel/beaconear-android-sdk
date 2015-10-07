@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">BeaconearSDK</string>
+    <string name="beaconear_api_url">http://vps-1091345-x.dattaweb.com:8083/</string>
+</resources>
