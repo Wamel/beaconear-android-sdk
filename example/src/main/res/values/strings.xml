@@ -8,5 +8,6 @@
     <string name="title_activity_beaconear_manager_test">BeaconearManagerTest</string>
     <string name="title_activity_beacon_manager">BeaconManagerActivity</string>
     <string name="title_activity_asyncronous">AsyncronousActivity</string>
+    <string name="title_activity_beacon_test">BeaconTestActivity</string>
 
 </resources>

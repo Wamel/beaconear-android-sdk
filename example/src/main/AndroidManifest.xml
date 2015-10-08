@@ -20,6 +20,10 @@
             android:name=".ExampleActivity"
             android:label="@string/title_activity_asyncronous" >
         </activity>
+        <activity
+            android:name=".BeaconTestActivity"
+            android:label="@string/title_activity_beacon_test" >
+        </activity>
     </application>
 
 </manifest>

@@ -127,7 +127,7 @@ public class ExampleActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_asyncronous, menu);
+        getMenuInflater().inflate(R.menu.menu_example, menu);
         return true;
     }
 

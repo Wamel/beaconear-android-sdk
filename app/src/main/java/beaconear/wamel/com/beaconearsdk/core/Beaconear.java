@@ -113,21 +113,23 @@ public class Beaconear {
     }
 
     private void notifyBeaconsRanged(Collection<org.altbeacon.beacon.Beacon> beacons) {
+        BeaconDTO beaconDTO = null;
         for(org.altbeacon.beacon.Beacon beacon : beacons){
-            this.getBeaconBuilders(beacon.getId1().toString(), beacon.getId2().toString(), beacon.getDistance());
+            beaconDTO = new BeaconDTO(beacon);
+            this.getBeaconBuilders(beaconDTO);
         }
     }
 
-    private void getBeaconBuilders(String namespace, String instance, final double distance) {
+    private void getBeaconBuilders(final BeaconDTO beaconDTO) {
         BeaconService service = mRestAdapterBeaconearApi.create(BeaconService.class);
 
-        service.getBuilderBeacon(this.mKey, namespace, instance, new Callback<List<BuilderBeacon>>(){
+        service.getBuilderBeacon(this.mKey, beaconDTO.getUuid(), beaconDTO.getMajor(), beaconDTO.getMinor(), new Callback<List<BuilderBeacon>>(){
             @Override
             public void success(List<BuilderBeacon> builderBeacons, Response response) {
                 List<BuilderBeacon> builderBeaconsWithDistance = new ArrayList<>();
 
                 for(BuilderBeacon builder : builderBeacons) {
-                    builderBeaconsWithDistance.add(new BuilderBeacon(builder.getType(),distance, builder.getMetadata()));
+                    builderBeaconsWithDistance.add(new BuilderBeacon(builder.getType(), beaconDTO.getDistance(), builder.getMetadata()));
                 }
 
                 sendNotifications(builderBeaconsWithDistance);

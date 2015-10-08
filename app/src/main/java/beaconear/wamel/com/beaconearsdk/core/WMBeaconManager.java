@@ -20,6 +20,9 @@ import beaconear.wamel.com.beaconearsdk.model.Region;
  */
 class WMBeaconManager implements BeaconConsumer {
 
+    final String EDDYSTONE_LAYOUT = "s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19";
+    final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
+
     private BeaconManager mBeaconManager;
     private Context context;
     private org.altbeacon.beacon.Region region;
@@ -30,7 +33,9 @@ class WMBeaconManager implements BeaconConsumer {
         mBeaconManager = BeaconManager.getInstanceForApplication(this.context);
         // Detect the main Eddystone-UID frame:
         mBeaconManager.getBeaconParsers().add(new BeaconParser().
-                setBeaconLayout("s:0-1=feaa,m:2-2=00,p:3-3:-41,i:4-13,i:14-19"));
+                setBeaconLayout(EDDYSTONE_LAYOUT));
+        mBeaconManager.getBeaconParsers().add(new BeaconParser().
+                setBeaconLayout(IBEACON_LAYOUT));
         mBeaconManager.setRangeNotifier(rangeNotifier);
         mBeaconManager.setMonitorNotifier(monitorNotifier);
 
@@ -80,6 +85,5 @@ class WMBeaconManager implements BeaconConsumer {
         return this.context.bindService(intent, serviceConnection, i);
 
     }
-
 
 }

@@ -12,5 +12,5 @@ import retrofit.http.Query;
  */
 public interface BeaconService {
     @GET("/beacons")
-    void getBuilderBeacon(@Query("public_key") String publicKey, @Query("namespace") String uuid, @Query("instance") String instance, Callback<List<BuilderBeacon>> callback);
+    void getBuilderBeacon(@Query("public_key") String publicKey, @Query("uuid") String uuid, @Query("major") String major, @Query("minor") String minor, Callback<List<BuilderBeacon>> callback);
 }
