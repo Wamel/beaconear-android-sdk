@@ -8,12 +8,6 @@ public class PaymentBeacon extends Beacon {
     private Double amount;
     private String reference;
 
-    public PaymentBeacon(BeaconBuilder builder) {
-        super(builder);
-        this.amount = builder.getDouble("amount");
-        this.reference = builder.getString("reference");
-    }
-
     public Double getAmount() {
         return amount;
     }

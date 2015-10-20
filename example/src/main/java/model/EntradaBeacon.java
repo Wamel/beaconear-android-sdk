@@ -9,11 +9,6 @@ import beaconear.wamel.com.beaconearsdk.model.BeaconBuilder;
 public class EntradaBeacon extends Beacon {
     private String nombreLocal;
 
-    public EntradaBeacon(BeaconBuilder builder) {
-        super(builder);
-        this.nombreLocal = builder.getString("nombre_local");
-    }
-
     public String getNombreLocal() {
         return nombreLocal;
     }

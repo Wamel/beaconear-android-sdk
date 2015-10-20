@@ -1,9 +1,5 @@
 package beaconear.wamel.com.beaconearsdk.model;
 
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-
 /**
  * Created by Mauro on 23/09/2015.
  */

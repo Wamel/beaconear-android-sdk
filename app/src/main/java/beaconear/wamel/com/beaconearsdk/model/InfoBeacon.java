@@ -6,12 +6,6 @@ package beaconear.wamel.com.beaconearsdk.model;
 public class InfoBeacon extends Beacon {
     private String description;
 
-    public InfoBeacon(BeaconBuilder builder) {
-        super(builder);
-        this.description = builder.getString("description");
-
-    }
-
     public String getDescription() {
         return description;
     }

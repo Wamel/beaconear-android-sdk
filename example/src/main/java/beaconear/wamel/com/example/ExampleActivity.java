@@ -21,13 +21,14 @@ import model.MyBeaconType;
 public class ExampleActivity extends ActionBarActivity {
 
     private Beaconear beaconear;
-    private String publicKey = "1a2b3c4d5e6f7g";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_example);
 
 
+        String publicKey = "1a2b3c4d5e6f7g";
         beaconear = new Beaconear.Builder()
                 .setContext(this)
                 .setPublicKey(publicKey)
@@ -47,12 +48,25 @@ public class ExampleActivity extends ActionBarActivity {
                         showToast("Saliste de la región");
                     }
                 })
+                .setPaymentBeaconCallback(new BeaconCallback<PaymentBeacon>() {
+                    @Override
+                    public void whenFound(PaymentBeacon beacon) {
+                        showToast(""+beacon.getAmount());
+                    }
+                })
                 .addCustomizedBeaconCallback(MyBeaconType.MESA, new BeaconCallback<BeaconBuilder>() {
                     @Override
                     public void whenFound(BeaconBuilder beacon) {
-                        MesaBeacon mesa = new MesaBeacon(beacon);
-                        mesa.setNumeroDeMesa(1000);
+                        MesaBeacon mesa = beacon.buildBeacon(MesaBeacon.class);
+                        mesa.setNumeroDeMesa(9999);
                         Beaconear.save(mesa);
+                    }
+                })
+                .addCustomizedBeaconCallback(MyBeaconType.ENTRADA, new BeaconCallback<BeaconBuilder>() {
+                    @Override
+                    public void whenFound(BeaconBuilder beacon) {
+                        EntradaBeacon entrada = beacon.buildBeacon(EntradaBeacon.class);
+                        showToast(""+entrada.getNombreLocal());
                     }
                 })
                 .build();
@@ -83,11 +97,8 @@ public class ExampleActivity extends ActionBarActivity {
 
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            return true;
-        }
+        return id == R.id.action_settings || super.onOptionsItemSelected(item);
 
-        return super.onOptionsItemSelected(item);
     }
 
     private void showToast(final String message) {

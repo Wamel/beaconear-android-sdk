@@ -2,9 +2,6 @@ package beaconear.wamel.com.beaconearsdk.core;
 
 import android.content.Context;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -13,7 +10,6 @@ import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.RangeNotifier;
 
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +37,6 @@ public class Beaconear {
     public static final String KEY_TYPE_PUBLIC = "public_key";
     public static final String KEY_TYPE_PRIVATE = "private_key";
 
-    //private static final String BEACONEAR_API_BASE_URL = "http://vps-1091345-x.dattaweb.com:8083";
     private static final String BEACONEAR_API_BASE_URL = "http://wamel.io:8080";
 
     private RestAdapter mRestAdapterBeaconearApi;
@@ -118,24 +113,21 @@ public class Beaconear {
         BeaconDTO beaconDTO = null;
         for(org.altbeacon.beacon.Beacon beacon : beacons){
             beaconDTO = new BeaconDTO(beacon);
-            this.getBeaconBuilders(beaconDTO);
+            this.getBeaconBuildersAndNotify(beaconDTO);
         }
     }
 
-    private void getBeaconBuilders(final BeaconDTO beaconDTO) {
+    private void getBeaconBuildersAndNotify(final BeaconDTO beaconDTO) {
 
         BeaconService service = mRestAdapterBeaconearApi.create(BeaconService.class);
 
         service.getBuilderBeacons(this.mKey, beaconDTO.getUuid(), beaconDTO.getMajor(), beaconDTO.getMinor(), new Callback<List<BeaconBuilder>>() {
             @Override
             public void success(List<BeaconBuilder> beaconBuilders, Response response) {
-                List<BeaconBuilder> builderBeaconsWithDistance = new ArrayList<>();
-
                 for (BeaconBuilder builder : beaconBuilders) {
-                    builderBeaconsWithDistance.add(new BeaconBuilder(builder.getType(), builder.getMetadata(), builder.getApiKey(), beaconDTO.getDistance()));
+                    builder.setDistance(beaconDTO.getDistance());
                 }
-
-                sendNotifications(builderBeaconsWithDistance);
+                sendNotificationsByTypes(beaconBuilders);
             }
 
             @Override
@@ -145,26 +137,27 @@ public class Beaconear {
         });
     }
 
-    private void sendNotifications(List<BeaconBuilder> beaconBuilders) {
-
+    private void sendNotificationsByTypes(List<BeaconBuilder> beaconBuilders) {
+        String type = "";
         for(BeaconBuilder beaconBuilder : beaconBuilders) {
-            switch (beaconBuilder.getType()) {
+            type = beaconBuilder.getBeaconType();
+            switch (type) {
                 case BeaconType.PAYMENT:
                     if (mPaymentBeaconCallback != null) {
-                            this.mPaymentBeaconCallback.whenFound(new PaymentBeacon(beaconBuilder));
+                            this.mPaymentBeaconCallback.whenFound(beaconBuilder.buildBeacon(PaymentBeacon.class));
                     }
                     break;
 
                 case BeaconType.INFO:
                     if (mInfoBeaconCallback != null) {
-                            this.mInfoBeaconCallback.whenFound(new InfoBeacon(beaconBuilder));
+                        this.mInfoBeaconCallback.whenFound(beaconBuilder.buildBeacon(InfoBeacon.class));
                     }
                     break;
 
                 default:
-                    BeaconCallback<BeaconBuilder> callback = this.mTypeCallbackMap.get(beaconBuilder.getType());
+                    BeaconCallback<BeaconBuilder> callback = this.mTypeCallbackMap.get(type);
                     if (callback != null) {
-                            callback.whenFound(beaconBuilder);
+                           callback.whenFound(beaconBuilder);
                     }
                     break;
 
@@ -254,18 +247,11 @@ public class Beaconear {
     }
 
     public static void save(beaconear.wamel.com.beaconearsdk.model.Beacon beacon){
-        String type = beacon.getType();
-        String apiKey =  beacon.getApiKey();
-
         String json = JsonUtil.getInstance().toJson(beacon);
         JsonObject metadata = (JsonObject)new JsonParser().parse(json);
         metadata.remove("distance");
-        metadata.remove("type");
-        metadata.remove("api_key");
 
         JsonObject beaconJson = new JsonObject();
-        beaconJson.addProperty("api_key", apiKey);
-        beaconJson.addProperty("type", type);
         beaconJson.add("metadata", metadata);
 
         RestAdapter restAdapterBeaconearApi = new RestAdapter.Builder()
@@ -276,7 +262,7 @@ public class Beaconear {
 
         BeaconService service = restAdapterBeaconearApi.create(BeaconService.class);
 
-        service.updateBeacon(apiKey, beacon.getUuid(), beacon.getMajor(), beacon.getMinor(), type, beaconJson, new Callback<Response>() {
+        service.updateBeacon(beacon.getApiKey(), beacon.getUuid(), beacon.getMajor(), beacon.getMinor(), beacon.getType(), beaconJson, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {}
 

@@ -1,50 +1,34 @@
 package beaconear.wamel.com.beaconearsdk.model;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import beaconear.wamel.com.beaconearsdk.util.JsonUtil;
 
 /**
  * Created by Mauro on 19/09/2015.
  */
 public class BeaconBuilder {
 
-    private String apiKey;
-    private String type;
+    private double distance;
     private JsonObject metadata;
-    private transient double distance;
 
-    public BeaconBuilder(String type, JsonElement metadata, String apiKey, double distance){
-        this.type = type;
-        this.metadata = metadata.getAsJsonObject();
-        this.distance = distance;
-        this.apiKey = apiKey;
+    public void setDistance(double distance) {
+        this.metadata.addProperty("distance", distance);
     }
 
-    public String getType() {
-        return type;
+    public String getBeaconType() {
+        return this.metadata.getAsJsonPrimitive("type").getAsString();
     }
 
-    public JsonElement getMetadata() {
-        return metadata;
+    public <T extends Beacon> T buildBeacon(Class<T> tClass)
+    {
+        return new GenericBuilder<T>().build(metadata, tClass);
     }
 
-    public double getDistance() {
-        return distance;
-    }
-
-    public Double getDouble(String key) {
-        return this.metadata.getAsJsonPrimitive(key).getAsDouble();
-    }
-
-    public int getInt(String key) {
-        return this.metadata.getAsJsonPrimitive(key).getAsInt();
-    }
-
-    public String getString(String key) {
-        return this.metadata.getAsJsonPrimitive(key).getAsString();
-    }
-
-    public String getApiKey() {
-        return apiKey;
+    private class GenericBuilder<T extends Beacon>{
+        public T build(JsonObject json, Class<T> tClass){
+            T beacon = JsonUtil.getInstance().fromJson(json.toString(), tClass);
+            return beacon;
+        }
     }
 }
