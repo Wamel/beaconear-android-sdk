@@ -8,7 +8,7 @@ import android.widget.Toast;
 
 import beaconear.wamel.com.beaconearsdk.core.Beaconear;
 import beaconear.wamel.com.beaconearsdk.model.BeaconCallback;
-import beaconear.wamel.com.beaconearsdk.model.BuilderBeacon;
+import beaconear.wamel.com.beaconearsdk.model.BeaconBuilder;
 import beaconear.wamel.com.beaconearsdk.model.InfoBeacon;
 import beaconear.wamel.com.beaconearsdk.model.PaymentBeacon;
 import beaconear.wamel.com.beaconearsdk.model.Region;
@@ -21,7 +21,7 @@ import model.MyBeaconType;
 public class ExampleActivity extends ActionBarActivity {
 
     private Beaconear beaconear;
-
+    private String publicKey = "1a2b3c4d5e6f7g";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,71 +30,10 @@ public class ExampleActivity extends ActionBarActivity {
 
         beaconear = new Beaconear.Builder()
                 .setContext(this)
-                .setPublicKey("1a2b3c4d5e6f7g")
+                .setPublicKey(publicKey)
                 .setPaymentBeaconCallback(new BeaconCallback<PaymentBeacon>() {
                     @Override
-                    public void whenImmediate(PaymentBeacon beacon) {
-
-                    }
-
-                    @Override
-                    public void whenNear(PaymentBeacon beacon) {
-
-                    }
-
-                    @Override
-                    public void whenFar(PaymentBeacon beacon) {
-
-                    }
-                })
-                .setInfoBeaconCallback(new BeaconCallback<InfoBeacon>() {
-                    @Override
-                    public void whenImmediate(InfoBeacon beacon) {
-
-                    }
-
-                    @Override
-                    public void whenNear(InfoBeacon beacon) {
-
-                    }
-
-                    @Override
-                    public void whenFar(InfoBeacon beacon) {
-
-                    }
-                })
-                .addCustomizedBeaconCallback(MyBeaconType.ENTRADA, new BeaconCallback<BuilderBeacon>() {
-                    @Override
-                    public void whenImmediate(BuilderBeacon beacon) {
-                        EntradaBeacon entrada = new EntradaBeacon(beacon);
-                        showToast("Bienvenido a " + entrada.getNombreLocal());
-                    }
-
-                    @Override
-                    public void whenNear(BuilderBeacon beacon) {
-                        EntradaBeacon entrada = new EntradaBeacon(beacon);
-                        showToast("Bienvenido a " + entrada.getNombreLocal());
-                    }
-
-                    @Override
-                    public void whenFar(BuilderBeacon beacon) {
-                    }
-                })
-                .addCustomizedBeaconCallback(MyBeaconType.MESA, new BeaconCallback<BuilderBeacon>() {
-                    @Override
-                    public void whenImmediate(BuilderBeacon beacon) {
-                        MesaBeacon mesa = new MesaBeacon(beacon);
-                        showToast("Se encuentra en la mesa " + mesa.getNumeroDeMesa());
-                    }
-
-                    @Override
-                    public void whenNear(BuilderBeacon beacon) {
-                        MesaBeacon mesa = new MesaBeacon(beacon);
-                    }
-
-                    @Override
-                    public void whenFar(BuilderBeacon beacon) {
-                        MesaBeacon mesa = new MesaBeacon(beacon);
+                    public void whenFound(PaymentBeacon beacon) {
                     }
                 })
                 .setRegionStateMonitoringCallback(new Region("0xf7826da6bc5b71e0893e"), new RegionCallback() {
@@ -106,6 +45,14 @@ public class ExampleActivity extends ActionBarActivity {
                     @Override
                     public void whenExited() {
                         showToast("Saliste de la región");
+                    }
+                })
+                .addCustomizedBeaconCallback(MyBeaconType.MESA, new BeaconCallback<BeaconBuilder>() {
+                    @Override
+                    public void whenFound(BeaconBuilder beacon) {
+                        MesaBeacon mesa = new MesaBeacon(beacon);
+                        mesa.setNumeroDeMesa(1000);
+                        Beaconear.save(mesa);
                     }
                 })
                 .build();
@@ -150,4 +97,5 @@ public class ExampleActivity extends ActionBarActivity {
             }
         });
     }
+
 }

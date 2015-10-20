@@ -5,6 +5,8 @@ import android.content.Context;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.MonitorNotifier;
@@ -17,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import beaconear.wamel.com.beaconearsdk.model.BeaconCallback;
-import beaconear.wamel.com.beaconearsdk.model.BuilderBeacon;
+import beaconear.wamel.com.beaconearsdk.model.BeaconBuilder;
 import beaconear.wamel.com.beaconearsdk.model.BeaconType;
 import beaconear.wamel.com.beaconearsdk.model.InfoBeacon;
 import beaconear.wamel.com.beaconearsdk.model.PaymentBeacon;
@@ -40,7 +42,7 @@ public class Beaconear {
     public static final String KEY_TYPE_PRIVATE = "private_key";
 
     //private static final String BEACONEAR_API_BASE_URL = "http://vps-1091345-x.dattaweb.com:8083";
-    private static final String BEACONEAR_API_BASE_URL = "http://private-51f6e-storeapi6.apiary-mock.com/";
+    private static final String BEACONEAR_API_BASE_URL = "http://wamel.io:8080";
 
     private RestAdapter mRestAdapterBeaconearApi;
 
@@ -49,7 +51,7 @@ public class Beaconear {
 
     private BeaconCallback<PaymentBeacon> mPaymentBeaconCallback = null;
     private BeaconCallback<InfoBeacon> mInfoBeaconCallback = null;
-    private HashMap<String, BeaconCallback<BuilderBeacon>> mTypeCallbackMap;
+    private HashMap<String, BeaconCallback<BeaconBuilder>> mTypeCallbackMap;
 
     private String mKey = null;
     private String mKeyType = null;
@@ -121,19 +123,21 @@ public class Beaconear {
     }
 
     private void getBeaconBuilders(final BeaconDTO beaconDTO) {
+
         BeaconService service = mRestAdapterBeaconearApi.create(BeaconService.class);
 
-        service.getBuilderBeacon(this.mKey, beaconDTO.getUuid(), beaconDTO.getMajor(), beaconDTO.getMinor(), new Callback<List<BuilderBeacon>>(){
+        service.getBuilderBeacons(this.mKey, beaconDTO.getUuid(), beaconDTO.getMajor(), beaconDTO.getMinor(), new Callback<List<BeaconBuilder>>() {
             @Override
-            public void success(List<BuilderBeacon> builderBeacons, Response response) {
-                List<BuilderBeacon> builderBeaconsWithDistance = new ArrayList<>();
+            public void success(List<BeaconBuilder> beaconBuilders, Response response) {
+                List<BeaconBuilder> builderBeaconsWithDistance = new ArrayList<>();
 
-                for(BuilderBeacon builder : builderBeacons) {
-                    builderBeaconsWithDistance.add(new BuilderBeacon(builder.getType(), beaconDTO.getDistance(), builder.getMetadata()));
+                for (BeaconBuilder builder : beaconBuilders) {
+                    builderBeaconsWithDistance.add(new BeaconBuilder(builder.getType(), builder.getMetadata(), builder.getApiKey(), beaconDTO.getDistance()));
                 }
 
                 sendNotifications(builderBeaconsWithDistance);
             }
+
             @Override
             public void failure(RetrofitError error) {
 
@@ -141,51 +145,31 @@ public class Beaconear {
         });
     }
 
-    private void sendNotifications(List<BuilderBeacon> builderBeacons) {
+    private void sendNotifications(List<BeaconBuilder> beaconBuilders) {
 
-        for(BuilderBeacon builderBeacon : builderBeacons) {
-            switch (builderBeacon.getType()) {
+        for(BeaconBuilder beaconBuilder : beaconBuilders) {
+            switch (beaconBuilder.getType()) {
                 case BeaconType.PAYMENT:
                     if (mPaymentBeaconCallback != null) {
-                        if (builderBeacon.isImmediate())
-                            this.mPaymentBeaconCallback.whenImmediate(new PaymentBeacon(builderBeacon));
-                        else if (builderBeacon.isNear())
-                            this.mPaymentBeaconCallback.whenNear(new PaymentBeacon(builderBeacon));
-                        else if (builderBeacon.isFar())
-                            this.mPaymentBeaconCallback.whenFar(new PaymentBeacon(builderBeacon));
+                            this.mPaymentBeaconCallback.whenFound(new PaymentBeacon(beaconBuilder));
                     }
                     break;
 
                 case BeaconType.INFO:
                     if (mInfoBeaconCallback != null) {
-                        if (builderBeacon.isImmediate())
-                            this.mInfoBeaconCallback.whenImmediate(new InfoBeacon(builderBeacon));
-                        else if (builderBeacon.isNear())
-                            this.mInfoBeaconCallback.whenNear(new InfoBeacon(builderBeacon));
-                        else if (builderBeacon.isFar())
-                            this.mInfoBeaconCallback.whenFar(new InfoBeacon(builderBeacon));
+                            this.mInfoBeaconCallback.whenFound(new InfoBeacon(beaconBuilder));
                     }
                     break;
 
                 default:
-                    BeaconCallback<BuilderBeacon> callback = this.mTypeCallbackMap.get(builderBeacon.getType());
+                    BeaconCallback<BeaconBuilder> callback = this.mTypeCallbackMap.get(beaconBuilder.getType());
                     if (callback != null) {
-                        if (builderBeacon.isImmediate())
-                            callback.whenImmediate(builderBeacon);
-                        else if (builderBeacon.isNear())
-                            callback.whenNear(builderBeacon);
-                        else if (builderBeacon.isFar())
-                            callback.whenFar(builderBeacon);
+                            callback.whenFound(beaconBuilder);
                     }
                     break;
 
             }
         }
-    }
-
-    private static Gson getGson() {
-
-        return new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).serializeNulls().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
     }
 
     public static class Builder {
@@ -197,7 +181,7 @@ public class Beaconear {
         private BeaconCallback<PaymentBeacon> mPaymentBeaconCallback;
         private BeaconCallback<InfoBeacon> mInfoBeaconCallback;
 
-        private HashMap<String, BeaconCallback<BuilderBeacon>> mTypeCallbackMap;
+        private HashMap<String, BeaconCallback<BeaconBuilder>> mTypeCallbackMap;
 
         private Region mRegion;
 
@@ -257,7 +241,7 @@ public class Beaconear {
             return this;
         }
 
-        public Builder addCustomizedBeaconCallback(String type, BeaconCallback<BuilderBeacon> beaconCallback) {
+        public Builder addCustomizedBeaconCallback(String type, BeaconCallback<BeaconBuilder> beaconCallback) {
             this.mTypeCallbackMap.put(type, beaconCallback);
             return this;
         }
@@ -269,5 +253,41 @@ public class Beaconear {
         }
     }
 
+    public static void save(beaconear.wamel.com.beaconearsdk.model.Beacon beacon){
+        String type = beacon.getType();
+        String apiKey =  beacon.getApiKey();
+
+        String json = JsonUtil.getInstance().toJson(beacon);
+        JsonObject metadata = (JsonObject)new JsonParser().parse(json);
+        metadata.remove("distance");
+        metadata.remove("type");
+        metadata.remove("api_key");
+
+        JsonObject beaconJson = new JsonObject();
+        beaconJson.addProperty("api_key", apiKey);
+        beaconJson.addProperty("type", type);
+        beaconJson.add("metadata", metadata);
+
+        RestAdapter restAdapterBeaconearApi = new RestAdapter.Builder()
+                .setEndpoint(BEACONEAR_API_BASE_URL)
+                .setLogLevel(Settings.RETROFIT_LOGGING)
+                .setConverter(new GsonConverter(JsonUtil.getInstance().getGson()))
+                .build();
+
+        BeaconService service = restAdapterBeaconearApi.create(BeaconService.class);
+
+        service.updateBeacon(apiKey, beacon.getUuid(), beacon.getMajor(), beacon.getMinor(), type, beaconJson, new Callback<Response>() {
+            @Override
+            public void success(Response response, Response response2) {}
+
+            @Override
+            public void failure(RetrofitError error) {
+
+            }
+        });
+
+
+
+    }
 
 }

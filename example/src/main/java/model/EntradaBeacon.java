@@ -1,7 +1,7 @@
 package model;
 
 import beaconear.wamel.com.beaconearsdk.model.Beacon;
-import beaconear.wamel.com.beaconearsdk.model.BuilderBeacon;
+import beaconear.wamel.com.beaconearsdk.model.BeaconBuilder;
 
 /**
  * Created by User on 24/09/2015.
@@ -9,10 +9,9 @@ import beaconear.wamel.com.beaconearsdk.model.BuilderBeacon;
 public class EntradaBeacon extends Beacon {
     private String nombreLocal;
 
-    public EntradaBeacon(BuilderBeacon builder) {
+    public EntradaBeacon(BeaconBuilder builder) {
         super(builder);
-        this.nombreLocal = metadata.getAsJsonPrimitive("nombre_local").getAsString();
-
+        this.nombreLocal = builder.getString("nombre_local");
     }
 
     public String getNombreLocal() {

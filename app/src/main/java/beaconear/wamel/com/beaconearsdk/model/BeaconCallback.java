@@ -9,9 +9,6 @@ import retrofit.client.Response;
  */
 public abstract class BeaconCallback<T>{
 
-    public abstract void whenImmediate(T beacon);
+    public abstract void whenFound(T beacon);
 
-    public abstract void whenNear(T beacon);
-
-    public abstract void whenFar(T beacon);
 }

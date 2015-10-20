@@ -1,7 +1,5 @@
 package beaconear.wamel.com.beaconearsdk.model;
 
-import com.google.gson.JsonObject;
-
 /**
  * Created by Mauro on 19/09/2015.
  */
@@ -10,10 +8,10 @@ public class PaymentBeacon extends Beacon {
     private Double amount;
     private String reference;
 
-    public PaymentBeacon(BuilderBeacon builder) {
+    public PaymentBeacon(BeaconBuilder builder) {
         super(builder);
-        this.amount = metadata.getAsJsonPrimitive("amount").getAsDouble();
-        this.reference = metadata.getAsJsonPrimitive("reference").getAsString();
+        this.amount = builder.getDouble("amount");
+        this.reference = builder.getString("reference");
     }
 
     public Double getAmount() {
