@@ -5,7 +5,7 @@ package beaconear.wamel.com.beaconearsdk.model;
  */
 public abstract class RegionCallback {
 
-    public abstract void whenEntered();
+    public abstract void whenEntered(Region region);
 
-    public abstract void whenExited();
+    public abstract void whenExited(Region region);
 }

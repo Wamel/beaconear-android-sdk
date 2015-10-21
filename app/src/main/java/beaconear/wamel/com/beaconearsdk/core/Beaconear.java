@@ -79,12 +79,12 @@ public class Beaconear {
         MonitorNotifier monitorNotifier = new MonitorNotifier() {
             @Override
             public void didEnterRegion(org.altbeacon.beacon.Region region) {
-                mRegionCallback.whenEntered();
+                mRegionCallback.whenEntered(mRegion);
             }
 
             @Override
             public void didExitRegion(org.altbeacon.beacon.Region region) {
-                mRegionCallback.whenExited();
+                mRegionCallback.whenExited(mRegion);
             }
 
             @Override

@@ -38,12 +38,19 @@ class WMBeaconManager implements BeaconConsumer {
         mBeaconManager.setRangeNotifier(rangeNotifier);
         mBeaconManager.setMonitorNotifier(monitorNotifier);
 
-        Identifier myBeaconNamespaceId = null;
+        Identifier id1 = null;
+        Identifier id2 = null;
+        Identifier id3 = null;
+
         if(region!= null) {
-            if (!region.getUuid().isEmpty())
-                myBeaconNamespaceId = Identifier.parse(region.getUuid());
+            if (region.getUuid() != null && !region.getUuid().isEmpty())
+                id1 = Identifier.parse(region.getUuid());
+            if (region.getMajor() != null && !region.getMajor().isEmpty())
+                id2 = Identifier.parse(region.getMajor());
+            if (region.getMinor() != null && !region.getMinor().isEmpty())
+                id3 = Identifier.parse(region.getMinor());
         }
-        this.region = new org.altbeacon.beacon.Region("Region", myBeaconNamespaceId, null, null);
+        this.region = new org.altbeacon.beacon.Region(region.getName(), id1, id2, id3);
 
     }
 
@@ -62,7 +69,7 @@ class WMBeaconManager implements BeaconConsumer {
             mBeaconManager.startRangingBeaconsInRegion(new org.altbeacon.beacon.Region("uniqueid2", null, null, null));
             if(this.region!= null && this.mBeaconManager.getMonitoringNotifier() != null) {
                 if(this.region.getId1() != null)
-                mBeaconManager.startMonitoringBeaconsInRegion(new org.altbeacon.beacon.Region("region", this.region.getId1(), null, null));
+                mBeaconManager.startMonitoringBeaconsInRegion(new org.altbeacon.beacon.Region(this.region.getUniqueId(), this.region.getId1(), this.region.getId2(), this.region.getId3()));
             }
         } catch (RemoteException e) {
 

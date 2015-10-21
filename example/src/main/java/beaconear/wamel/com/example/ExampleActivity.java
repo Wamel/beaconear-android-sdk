@@ -37,14 +37,14 @@ public class ExampleActivity extends ActionBarActivity {
                     public void whenFound(PaymentBeacon beacon) {
                     }
                 })
-                .setRegionStateMonitoringCallback(new Region("0xf7826da6bc5b71e0893e"), new RegionCallback() {
+                .setRegionStateMonitoringCallback(new Region("Wamel", "0xf7826da6bc5b71e0893e", null, null), new RegionCallback() {
                     @Override
-                    public void whenEntered() {
-                        showToast("Entraste a la región");
+                    public void whenEntered(Region region) {
+                        showToast("Entraste a la región "+ region.getName() );
                     }
 
                     @Override
-                    public void whenExited() {
+                    public void whenExited(Region region) {
                         showToast("Saliste de la región");
                     }
                 })
