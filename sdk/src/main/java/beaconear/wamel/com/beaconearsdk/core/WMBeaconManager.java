@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.RemoteException;
+import android.util.Log;
 
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
@@ -49,9 +50,9 @@ class WMBeaconManager implements BeaconConsumer {
                 id2 = Identifier.parse(region.getMajor());
             if (region.getMinor() != null && !region.getMinor().isEmpty())
                 id3 = Identifier.parse(region.getMinor());
-        }
-        this.region = new org.altbeacon.beacon.Region(region.getName(), id1, id2, id3);
 
+            this.region = new org.altbeacon.beacon.Region(region.getName(), id1, id2, id3);
+        }
     }
 
     public void startScan() {
@@ -72,7 +73,7 @@ class WMBeaconManager implements BeaconConsumer {
                 mBeaconManager.startMonitoringBeaconsInRegion(new org.altbeacon.beacon.Region(this.region.getUniqueId(), this.region.getId1(), this.region.getId2(), this.region.getId3()));
             }
         } catch (RemoteException e) {
-
+            Log.println(Log.ERROR, "onBeaconServiceConnect", e.getMessage());
         }
     }
 

@@ -1,6 +1,8 @@
 package beaconear.wamel.com.beaconearsdk.core;
 
 import android.content.Context;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -110,7 +112,7 @@ public class Beaconear {
     }
 
     private void notifyBeaconsRanged(Collection<org.altbeacon.beacon.Beacon> beacons) {
-        BeaconDTO beaconDTO = null;
+        BeaconDTO beaconDTO;
         for(org.altbeacon.beacon.Beacon beacon : beacons){
             beaconDTO = new BeaconDTO(beacon);
             this.getBeaconBuildersAndNotify(beaconDTO);
@@ -132,13 +134,13 @@ public class Beaconear {
 
             @Override
             public void failure(RetrofitError error) {
-
+                Log.println(Log.ERROR, "getBuilderBeacons on getBeaconBuildersAndNotify", error.getMessage());
             }
         });
     }
 
     private void sendNotificationsByTypes(List<BeaconBuilder> beaconBuilders) {
-        String type = "";
+        String type;
         for(BeaconBuilder beaconBuilder : beaconBuilders) {
             type = beaconBuilder.getBeaconType();
             switch (type) {
@@ -160,7 +162,6 @@ public class Beaconear {
                            callback.whenFound(beaconBuilder);
                     }
                     break;
-
             }
         }
     }
@@ -268,11 +269,9 @@ public class Beaconear {
 
             @Override
             public void failure(RetrofitError error) {
-
+                Log.println(Log.ERROR, "updateBeacon on save", error.getMessage());
             }
         });
-
-
 
     }
 

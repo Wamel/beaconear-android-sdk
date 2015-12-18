@@ -77,12 +77,10 @@ public class BeaconTestActivity extends ActionBarActivity implements BeaconConsu
             }
         });
         try {
-
-
             mBeaconManager.startMonitoringBeaconsInRegion(new Region("uniqueid1", null, null, null));
             mBeaconManager.startRangingBeaconsInRegion(new Region("uniqueid2", null, null, null));
         } catch (RemoteException e) {
-
+            Log.println(Log.ERROR, "onBeaconServiceConnect", e.getMessage());
         }
     }
 
