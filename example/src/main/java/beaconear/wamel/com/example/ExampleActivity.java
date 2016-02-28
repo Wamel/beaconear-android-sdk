@@ -48,6 +48,7 @@ public class ExampleActivity extends ActionBarActivity {
         beaconear = new Beaconear.Builder()
                 .setContext(this)
                 .setPublicKey(publicKey)
+                .enableLocalDataUpdate()
                 .setRegionStateMonitoringCallback(new Region("¡Paleta de colores!", null, null, null), new RegionCallback() {
                     @Override
                     public void whenEntered(Region region) {
@@ -87,7 +88,6 @@ public class ExampleActivity extends ActionBarActivity {
                     }
                 })
                 .build();
-        beaconear.enableLocalDataUpdate();
     }
 
     private void draw() {

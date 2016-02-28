@@ -67,7 +67,7 @@ public class LocalDataManager {
         intent.putExtra("key", key);
         PendingIntent pendingIntent = PendingIntent.getService(mContext, 0, intent, 0);
         AlarmManager alarm = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        alarm.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), AlarmManager.INTERVAL_HOUR, pendingIntent);
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), AlarmManager.INTERVAL_FIFTEEN_MINUTES, pendingIntent);
     }
 
     public void updateLocalData(List<TaggedThingBuilder> taggedThingBuilders) {

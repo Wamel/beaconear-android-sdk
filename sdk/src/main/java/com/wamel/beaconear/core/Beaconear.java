@@ -22,6 +22,7 @@ import com.wamel.beaconear.rest.services.BeaconService;
 import com.wamel.beaconear.util.HttpClientUtil;
 import com.wamel.beaconear.util.JsonUtil;
 import com.wamel.beaconear.util.NetworkUtils;
+import com.wamel.beaconear.util.SharedPreferencesUtil;
 
 import retrofit.Callback;
 import retrofit.RestAdapter;
@@ -37,8 +38,8 @@ public class Beaconear {
 
     private RestAdapter mRestAdapterBeaconearApi;
 
-    private final Region mRegion;
-    private final RegionCallback mRegionCallback;
+    private Region mRegion;
+    private RegionCallback mRegionCallback;
     private HashMap<String, OnDetectionCallback<TaggedThingBuilder>> mTypeCallbackMap;
 
     private String mKey = null;
@@ -46,6 +47,7 @@ public class Beaconear {
 
     private WMBeaconManager mWMBeaconManager;
     private LocalDataManager mLocalDataManger;
+    private boolean mEnableLocalDataUpdate;
 
     private Beaconear(Builder builder) {
 
@@ -54,8 +56,13 @@ public class Beaconear {
         this.mTypeCallbackMap = builder.mTypeCallbackMap;
         this.mRegion = builder.mRegion;
         this.mRegionCallback = builder.mRegionCallback;
+        this.mEnableLocalDataUpdate = builder.mEnableLocalDataUpdate;
 
         mLocalDataManger = new LocalDataManager(mContext);
+
+        if(mEnableLocalDataUpdate) {
+            enableLocalDataUpdate();
+        }
 
         mRestAdapterBeaconearApi = new RestAdapter.Builder()
                 .setEndpoint(BEACONEAR_API_BASE_URL)
@@ -101,11 +108,12 @@ public class Beaconear {
     }
 
     public void enableLocalDataUpdate() {
+        SharedPreferencesUtil.saveKey(mContext, this.mKey);
         this.mLocalDataManger.scheduleDataUpdate(this.mKey);
     }
 
-    public void stopLocalDataService() {
-
+    public void disableLocalDataUpdate() {
+        //TODO: set off alarms.
     }
 
     private void processRangedBeacons(Collection<Beacon> beacons) {
@@ -177,8 +185,9 @@ public class Beaconear {
         private HashMap<String, OnDetectionCallback<TaggedThingBuilder>> mTypeCallbackMap;
 
         private Region mRegion;
-
         private RegionCallback mRegionCallback;
+
+        private boolean mEnableLocalDataUpdate;
 
         public Builder() {
             mContext = null;
@@ -217,26 +226,10 @@ public class Beaconear {
             this.mRegionCallback = regionCallback;
             return this;
         }
+
+        public Builder enableLocalDataUpdate() {
+            this.mEnableLocalDataUpdate = true;
+            return this;
+        }
     }
-
-    /*public void save(TaggedThing beacon){
-        String json = JsonUtil.getInstance().toJson(beacon);
-        JsonObject metadata = (JsonObject) new JsonParser().parse(json);
-        metadata.remove("distance");
-
-        JsonObject beaconJson = new JsonObject();
-        beaconJson.add("metadata", metadata);
-
-        BeaconService service = mRestAdapterBeaconearApi.create(BeaconService.class);
-
-        service.updateBeacon(this.mKey, beacon.getUuid(), beacon.getMajor(), beacon.getMinor(), beacon.getType(), beaconJson, new Callback<Response>() {
-            @Override
-            public void success(Response response, Response response2) {}
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.println(Log.ERROR, "updateBeacon on save", error.getMessage());
-            }
-        });
-    }*/
 }
