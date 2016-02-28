@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/beaconear-android_sdk.iml" filepath="$PROJECT_DIR$/beaconear-android_sdk.iml" />
+      <module fileurl="file://$PROJECT_DIR$/beaconear.iml" filepath="$PROJECT_DIR$/beaconear.iml" />
       <module fileurl="file://$PROJECT_DIR$/example/example.iml" filepath="$PROJECT_DIR$/example/example.iml" />
       <module fileurl="file://$PROJECT_DIR$/sdk/sdk.iml" filepath="$PROJECT_DIR$/sdk/sdk.iml" />
     </modules>

@@ -1,46 +1,57 @@
 package beaconear.wamel.com.example;
 
+import android.graphics.Color;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import beaconear.wamel.com.beaconearsdk.core.Beaconear;
-import beaconear.wamel.com.beaconearsdk.model.BeaconCallback;
-import beaconear.wamel.com.beaconearsdk.model.BeaconBuilder;
-import beaconear.wamel.com.beaconearsdk.model.InfoBeacon;
-import beaconear.wamel.com.beaconearsdk.model.PaymentBeacon;
-import beaconear.wamel.com.beaconearsdk.model.Region;
-import beaconear.wamel.com.beaconearsdk.model.RegionCallback;
-import model.EntradaBeacon;
-import model.MesaBeacon;
-import model.MyBeaconType;
+import com.wamel.beaconear.core.Beaconear;
+import com.wamel.beaconear.model.OnDetectionCallback;
+import com.wamel.beaconear.model.TaggedThingBuilder;
+import com.wamel.beaconear.model.Region;
+import com.wamel.beaconear.model.RegionCallback;
+
+import java.math.BigDecimal;
+
+import model.BlueSource;
+import model.GreenSource;
+import model.MyTaggedTypes;
+import model.RedSource;
 
 
 public class ExampleActivity extends ActionBarActivity {
 
     private Beaconear beaconear;
+    private int red = 0;
+    private int green = 0;
+    private int blue = 0;
+
+    private RelativeLayout layout;
+    private TextView redText;
+    private TextView greenText;
+    private TextView blueText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_example);
-
+        layout = (RelativeLayout) findViewById(R.id.colorLayout);
+        redText = (TextView) findViewById(R.id.redText);
+        greenText = (TextView) findViewById(R.id.greenText);
+        blueText = (TextView) findViewById(R.id.blueText);
 
         String publicKey = "1a2b3c4d5e6f7g";
         beaconear = new Beaconear.Builder()
                 .setContext(this)
                 .setPublicKey(publicKey)
-                .setPaymentBeaconCallback(new BeaconCallback<PaymentBeacon>() {
-                    @Override
-                    public void whenFound(PaymentBeacon beacon) {
-                    }
-                })
-                .setRegionStateMonitoringCallback(new Region("Wamel", "0xf7826da6bc5b71e0893e", null, null), new RegionCallback() {
+                .setRegionStateMonitoringCallback(new Region("¡Paleta de colores!", null, null, null), new RegionCallback() {
                     @Override
                     public void whenEntered(Region region) {
-                        showToast("Entraste a la región "+ region.getName() );
+                        showToast("Entraste a la región: " + region.getName());
                     }
 
                     @Override
@@ -48,30 +59,56 @@ public class ExampleActivity extends ActionBarActivity {
                         showToast("Saliste de la región");
                     }
                 })
-                .setPaymentBeaconCallback(new BeaconCallback<PaymentBeacon>() {
+                .addOnDetectionCallbackForType(MyTaggedTypes.RED, new OnDetectionCallback<TaggedThingBuilder>() {
                     @Override
-                    public void whenFound(PaymentBeacon beacon) {
-                        showToast(""+beacon.getAmount());
+                    public void onDetected(TaggedThingBuilder thingBuilder) {
+                        RedSource redSource = thingBuilder.buildTaggedThing(RedSource.class);
+                        BigDecimal bigDecimal = BigDecimal.valueOf(thingBuilder.getDistance() * redSource.getFactor());
+                        red = 255-bigDecimal.intValue();
+                        draw();
                     }
                 })
-                .addCustomizedBeaconCallback(MyBeaconType.MESA, new BeaconCallback<BeaconBuilder>() {
+                .addOnDetectionCallbackForType(MyTaggedTypes.GREEN, new OnDetectionCallback<TaggedThingBuilder>() {
                     @Override
-                    public void whenFound(BeaconBuilder beacon) {
-                        MesaBeacon mesa = beacon.buildBeacon(MesaBeacon.class);
-                        mesa.setNumeroDeMesa(9999);
-                        Beaconear.save(mesa);
+                    public void onDetected(TaggedThingBuilder thingBuilder) {
+                        GreenSource greenSource = thingBuilder.buildTaggedThing(GreenSource.class);
+                        BigDecimal bigDecimal = BigDecimal.valueOf(thingBuilder.getDistance() * greenSource.getFactor());
+                        green = 255-bigDecimal.intValue();
+                        draw();
                     }
                 })
-                .addCustomizedBeaconCallback(MyBeaconType.ENTRADA, new BeaconCallback<BeaconBuilder>() {
+                .addOnDetectionCallbackForType(MyTaggedTypes.BLUE, new OnDetectionCallback<TaggedThingBuilder>() {
                     @Override
-                    public void whenFound(BeaconBuilder beacon) {
-                        EntradaBeacon entrada = beacon.buildBeacon(EntradaBeacon.class);
-                        showToast(""+entrada.getNombreLocal());
+                    public void onDetected(TaggedThingBuilder thingBuilder) {
+                        BlueSource blueSource = thingBuilder.buildTaggedThing(BlueSource.class);
+                        BigDecimal bigDecimal = BigDecimal.valueOf(thingBuilder.getDistance() * blueSource.getFactor());
+                        blue = 255-bigDecimal.intValue();
+                        draw();
                     }
                 })
                 .build();
+        beaconear.enableLocalDataUpdate();
+    }
 
+    private void draw() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (red < 0)
+                    red = 0;
+                if (blue < 0)
+                    blue = 0;
+                if (green < 0)
+                    green = 0;
 
+                redText.setText("R: " + red);
+                greenText.setText("G: " + green);
+                blueText.setText("B: " + blue);
+
+                layout.setBackgroundColor(Color.rgb(red, green, blue));
+
+            }
+        });
     }
 
     @Override
@@ -107,6 +144,11 @@ public class ExampleActivity extends ActionBarActivity {
                 Toast.makeText(ExampleActivity.this, message, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 
 }
