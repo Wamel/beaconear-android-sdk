@@ -9,13 +9,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.wamel.beaconear.callbacks.TaggedThingsRegionCallback;
 import com.wamel.beaconear.core.Beaconear;
-import com.wamel.beaconear.model.OnDetectionCallback;
+import com.wamel.beaconear.callbacks.OnDetectionCallback;
 import com.wamel.beaconear.model.TaggedThingBuilder;
-import com.wamel.beaconear.model.Region;
-import com.wamel.beaconear.model.RegionCallback;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import model.BlueSource;
 import model.GreenSource;
@@ -45,19 +46,52 @@ public class ExampleActivity extends ActionBarActivity {
         blueText = (TextView) findViewById(R.id.blueText);
 
         String publicKey = "1a2b3c4d5e6f7g";
+
+        List<String> typesToRange = new ArrayList<>();
+        typesToRange.add(MyTaggedTypes.RED);
+        typesToRange.add(MyTaggedTypes.GREEN);
+
         beaconear = new Beaconear.Builder()
                 .setContext(this)
                 .setPublicKey(publicKey)
                 .enableLocalDataUpdate()
-                .setRegionStateMonitoringCallback(new Region("¡Paleta de colores!", null, null, null), new RegionCallback() {
+                .addTaggedThingsRegionMonitoring(typesToRange, "Paleta de colores", new TaggedThingsRegionCallback() {
                     @Override
-                    public void whenEntered(Region region) {
-                        showToast("Entraste a la región: " + region.getName());
+                    public void whenEntered(String regionName) {
+                        showToast("¡Bienvenido a la paleta de colores!");
                     }
 
                     @Override
-                    public void whenExited(Region region) {
-                        showToast("Saliste de la región");
+                    public void whenExited(String regionName) {
+                        showToast("Has salido de la paleta de colores");
+                    }
+                })
+                .addTaggedThingsRegionMonitoring(MyTaggedTypes.RED, "Fuente roja", new TaggedThingsRegionCallback() {
+                    @Override
+                    public void whenEntered(String regionName) {
+                    }
+
+                    @Override
+                    public void whenExited(String regionName) {
+                        red = 0;
+                    }
+                })
+                .addTaggedThingsRegionMonitoring(MyTaggedTypes.BLUE, "Fuente azul", new TaggedThingsRegionCallback() {
+                    @Override
+                    public void whenEntered(String regionName) {}
+
+                    @Override
+                    public void whenExited(String regionName) {
+                        blue = 0;
+                    }
+                })
+                .addTaggedThingsRegionMonitoring(MyTaggedTypes.GREEN, "Fuente verde", new TaggedThingsRegionCallback() {
+                    @Override
+                    public void whenEntered(String regionName) {}
+
+                    @Override
+                    public void whenExited(String regionName) {
+                        green = 0;
                     }
                 })
                 .addOnDetectionCallbackForType(MyTaggedTypes.RED, new OnDetectionCallback<TaggedThingBuilder>() {
@@ -65,7 +99,7 @@ public class ExampleActivity extends ActionBarActivity {
                     public void onDetected(TaggedThingBuilder thingBuilder) {
                         RedSource redSource = thingBuilder.buildTaggedThing(RedSource.class);
                         BigDecimal bigDecimal = BigDecimal.valueOf(thingBuilder.getDistance() * redSource.getFactor());
-                        red = 255-bigDecimal.intValue();
+                        red = 255 - bigDecimal.intValue();
                         draw();
                     }
                 })
@@ -94,19 +128,21 @@ public class ExampleActivity extends ActionBarActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (red < 0)
+                if (red < 0) {
                     red = 0;
-                if (blue < 0)
+                }
+                if (blue < 0) {
                     blue = 0;
-                if (green < 0)
+                }
+                if (green < 0) {
                     green = 0;
+                }
 
                 redText.setText("R: " + red);
                 greenText.setText("G: " + green);
                 blueText.setText("B: " + blue);
 
                 layout.setBackgroundColor(Color.rgb(red, green, blue));
-
             }
         });
     }

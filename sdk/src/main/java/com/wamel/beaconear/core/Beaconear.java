@@ -1,8 +1,6 @@
 package com.wamel.beaconear.core;
 
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.util.Log;
 
 import org.altbeacon.beacon.Beacon;
@@ -10,14 +8,15 @@ import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.RangeNotifier;
 
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-import com.wamel.beaconear.model.OnDetectionCallback;
+import com.wamel.beaconear.callbacks.OnDetectionCallback;
+import com.wamel.beaconear.callbacks.TaggedThingsRegionCallback;
 import com.wamel.beaconear.model.TaggedThingBuilder;
-import com.wamel.beaconear.model.Region;
-import com.wamel.beaconear.model.RegionCallback;
+import com.wamel.beaconear.model.TaggedThingsRegionMonitor;
 import com.wamel.beaconear.rest.services.BeaconService;
 import com.wamel.beaconear.util.HttpClientUtil;
 import com.wamel.beaconear.util.JsonUtil;
@@ -38,29 +37,25 @@ public class Beaconear {
 
     private RestAdapter mRestAdapterBeaconearApi;
 
-    private Region mRegion;
-    private RegionCallback mRegionCallback;
     private HashMap<String, OnDetectionCallback<TaggedThingBuilder>> mTypeCallbackMap;
+    private List<TaggedThingsRegionMonitor> mTaggedThingsRegionMonitors;
 
     private String mKey = null;
     private Context mContext = null;
 
     private WMBeaconManager mWMBeaconManager;
     private LocalDataManager mLocalDataManger;
-    private boolean mEnableLocalDataUpdate;
 
     private Beaconear(Builder builder) {
 
         this.mContext = builder.mContext;
         this.mKey = builder.mKey;
+        this.mTaggedThingsRegionMonitors = builder.mTaggedThingsRegionMonitors;
         this.mTypeCallbackMap = builder.mTypeCallbackMap;
-        this.mRegion = builder.mRegion;
-        this.mRegionCallback = builder.mRegionCallback;
-        this.mEnableLocalDataUpdate = builder.mEnableLocalDataUpdate;
 
         mLocalDataManger = new LocalDataManager(mContext);
 
-        if(mEnableLocalDataUpdate) {
+        if(builder.mEnableLocalDataUpdate) {
             enableLocalDataUpdate();
         }
 
@@ -76,18 +71,16 @@ public class Beaconear {
 
         MonitorNotifier monitorNotifier = new MonitorNotifier() {
             @Override
-            public void didEnterRegion(org.altbeacon.beacon.Region region) {
-                mRegionCallback.whenEntered(mRegion);
-            }
+            public void didEnterRegion(org.altbeacon.beacon.Region region) {}
 
             @Override
-            public void didExitRegion(org.altbeacon.beacon.Region region) {
-                mRegionCallback.whenExited(mRegion);
-            }
+            public void didExitRegion(org.altbeacon.beacon.Region region) {}
 
             @Override
             public void didDetermineStateForRegion(int state, org.altbeacon.beacon.Region region) {
-
+                if(state == 0) {
+                    notifyRegionExitedToMonitors(region);
+                }
             }
         };
 
@@ -99,10 +92,24 @@ public class Beaconear {
             }
         };
 
-        this.mWMBeaconManager = new WMBeaconManager(monitorNotifier, rangeNotifier, this.mContext, this.mRegion);
+        this.mWMBeaconManager = new WMBeaconManager(monitorNotifier, rangeNotifier, this.mContext);
+
+        this.bindBeaconManagerToMonitors();
+
         this.mWMBeaconManager.startScan();
     }
 
+    private void notifyRegionExitedToMonitors(org.altbeacon.beacon.Region region) {
+        for(TaggedThingsRegionMonitor monitor : mTaggedThingsRegionMonitors) {
+            monitor.handleExitedRegion(region);
+        }
+    }
+
+    private void bindBeaconManagerToMonitors() {
+        for(TaggedThingsRegionMonitor monitor : mTaggedThingsRegionMonitors) {
+            monitor.bindBeaconManager(this.mWMBeaconManager);
+        }
+    }
     public void stopScanning() {
         this.mWMBeaconManager.stopScanning();
     }
@@ -124,8 +131,8 @@ public class Beaconear {
 
     private void getBeaconBuilders(final Beacon beacon) {
 
-        String uuid = beacon.getId1().toString();
-        String major = beacon.getId2().toString();
+        String uuid = beacon.getId1() != null ? beacon.getId1().toString() : "";
+        String major = beacon.getId2() != null ? beacon.getId2().toString() : "";
         String minor = beacon.getIdentifiers().size() == 3 ? beacon.getId3().toString() : "";
         double distance = beacon.getDistance();
 
@@ -167,13 +174,23 @@ public class Beaconear {
     }
 
     private void sendNotificationsByTypes(List<TaggedThingBuilder> taggedThingBuilders) {
-        String type;
         for(TaggedThingBuilder taggedThingBuilder : taggedThingBuilders) {
-            type = taggedThingBuilder.getBeaconType();
-            OnDetectionCallback<TaggedThingBuilder> callback = this.mTypeCallbackMap.get(type);
-            if (callback != null) {
-                callback.onDetected(taggedThingBuilder);
-            }
+            sendRangingNotifications(taggedThingBuilder);
+            sendRegionMonitoringNotificationsForType(taggedThingBuilder);
+        }
+    }
+
+    private void sendRangingNotifications(TaggedThingBuilder taggedThingBuilder) {
+        String type = taggedThingBuilder.getType();
+        OnDetectionCallback<TaggedThingBuilder> callback = this.mTypeCallbackMap.get(type);
+        if (callback != null) {
+            callback.onDetected(taggedThingBuilder);
+        }
+    }
+
+    private void sendRegionMonitoringNotificationsForType(TaggedThingBuilder thingBuilder) {
+        for(TaggedThingsRegionMonitor monitor : this.mTaggedThingsRegionMonitors) {
+            monitor.handleThingFound(thingBuilder);
         }
     }
 
@@ -183,9 +200,7 @@ public class Beaconear {
         private String mKey;
 
         private HashMap<String, OnDetectionCallback<TaggedThingBuilder>> mTypeCallbackMap;
-
-        private Region mRegion;
-        private RegionCallback mRegionCallback;
+        private List<TaggedThingsRegionMonitor> mTaggedThingsRegionMonitors;
 
         private boolean mEnableLocalDataUpdate;
 
@@ -193,6 +208,7 @@ public class Beaconear {
             mContext = null;
             mKey = null;
             mTypeCallbackMap = new HashMap<>();
+            mTaggedThingsRegionMonitors = new ArrayList<>();
         }
 
         public Builder setContext(Context context) {
@@ -221,14 +237,20 @@ public class Beaconear {
             return this;
         }
 
-        public Builder setRegionStateMonitoringCallback(Region region, RegionCallback regionCallback) {
-            this.mRegion = region;
-            this.mRegionCallback = regionCallback;
+        public Builder enableLocalDataUpdate() {
+            this.mEnableLocalDataUpdate = true;
             return this;
         }
 
-        public Builder enableLocalDataUpdate() {
-            this.mEnableLocalDataUpdate = true;
+        public Builder addTaggedThingsRegionMonitoring(List<String> typesToRange, String regionName, TaggedThingsRegionCallback taggedThingRegionCallback) {
+            this.mTaggedThingsRegionMonitors.add(new TaggedThingsRegionMonitor(typesToRange, regionName, taggedThingRegionCallback));
+            return this;
+        }
+
+        public Builder addTaggedThingsRegionMonitoring(String type, String regionName, TaggedThingsRegionCallback taggedThingRegionCallback) {
+            List<String> typesToRange = new ArrayList<>();
+            typesToRange.add(type);
+            this.mTaggedThingsRegionMonitors.add(new TaggedThingsRegionMonitor(typesToRange, regionName, taggedThingRegionCallback));
             return this;
         }
     }

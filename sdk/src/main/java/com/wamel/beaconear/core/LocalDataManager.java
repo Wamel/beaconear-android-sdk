@@ -5,18 +5,13 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 
-import com.wamel.beaconear.model.TaggedThing;
 import com.wamel.beaconear.model.TaggedThingBuilder;
 import com.wamel.beaconear.services.LocalDataService;
 import com.wamel.beaconear.util.FileUtils;
 import com.wamel.beaconear.util.JsonUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -67,7 +62,7 @@ public class LocalDataManager {
         intent.putExtra("key", key);
         PendingIntent pendingIntent = PendingIntent.getService(mContext, 0, intent, 0);
         AlarmManager alarm = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        alarm.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), AlarmManager.INTERVAL_FIFTEEN_MINUTES, pendingIntent);
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 4*AlarmManager.INTERVAL_HOUR, pendingIntent);
     }
 
     public void updateLocalData(List<TaggedThingBuilder> taggedThingBuilders) {

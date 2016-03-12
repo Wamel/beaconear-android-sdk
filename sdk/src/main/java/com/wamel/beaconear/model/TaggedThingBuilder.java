@@ -17,7 +17,7 @@ public class TaggedThingBuilder {
         this.metadata.addProperty("distance", distance);
     }
 
-    public String getBeaconType() {
+    public String getType() {
         return this.metadata.getAsJsonPrimitive("type").getAsString();
     }
 
