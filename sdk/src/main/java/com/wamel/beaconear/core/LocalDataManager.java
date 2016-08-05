@@ -24,6 +24,7 @@ public class LocalDataManager {
     private final String DATABASE_FILENAME = "database";
     private Context mContext;
     private static Date mLastUpdateDate;
+    
 
     public LocalDataManager(Context context)
     {
